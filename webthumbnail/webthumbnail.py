@@ -7,6 +7,7 @@ import sys
 import argparse
 import signal
 import logging
+import base64
 
 from PySide.QtCore import Signal, Qt, QObject, QTimer, QSize
 from PySide.QtGui import QApplication, QImage, QPainter
@@ -14,7 +15,10 @@ from PySide.QtWebKit import QWebPage, QWebSettings
 
 
 argument_parser = argparse.ArgumentParser(description="Webpage thumbnailer")
-argument_parser.add_argument("url")
+argument_parser.add_argument("--url",default="",
+        help="url for open")
+argument_parser.add_argument("--content",default="",
+        help="content for open ")
 argument_parser.add_argument("--out", default="out.png",
         help="write image to specified file")
 argument_parser.add_argument("--width", type=int,
@@ -64,6 +68,9 @@ class WebThumbnailer(QObject):
 
     def load(self, url):
         self.page.mainFrame().load(url)
+        
+    def set_content(self,content):
+        self.page.mainFrame().setContent(content)
 
     def save(self, out, width=None, height=None):
         image = self.render()
@@ -126,7 +133,10 @@ def main():
     else:
         QTimer.singleShot(int(args.timeout * 1000), on_timedout)
 
-    webthumbnailer.load(args.url)
+    if args.url:
+        webthumbnailer.load(args.url)
+    elif args.content:
+        webthumbnailer.set_content(base64.b64decode(args.content))
 
     sys.exit(app.exec_())
 

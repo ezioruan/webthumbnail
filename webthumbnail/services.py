@@ -4,20 +4,13 @@ Created on 2013年8月29日
 
 @author: ezioruan
 '''
-from bottle import route, run,request,post,static_file
+from bottle import route, run,request,static_file
 import uuid
 import setting
 import os
-from screenshots import Screenshot
+from task import capture_cmd
+import time
 
-screen_shot = Screenshot()
-
-
-
-@route('/static/<filename:path>')
-def send_static(filename):
-    print 'get static',filename
-    return static_file(filename, root=setting.STATIC_DIR)
 
 @route('/webshot',method='POST')
 def upload():
@@ -27,12 +20,8 @@ def upload():
     content = template.file.read()
     file_name = str(uuid.uuid1()) + ".png"
     file_path = os.path.join(setting.STATIC_DIR,file_name)
-    try:
-        screen_shot.capture_content(content, file_path, width, height)
-    except Exception,e:
-        global screen_shot
-        screen_shot = Screenshot()
-        print 'error:',e
+    capture_cmd(content, file_path, width, height)
+    time.sleep(setting.TIME_OUT)
     return static_file(file_name,setting.STATIC_DIR)
 
 @route('/webshot',method='GET')
